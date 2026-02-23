@@ -9,7 +9,6 @@ readme:
 - path: README.md
 source:
 - path: src/AppTask.cpp
-- path: src/LightingManager.cpp
 - path: src/main.cpp
 - path: src/DataModelCallbacks.cpp
 include:
@@ -19,7 +18,6 @@ include:
   - path: AppEvent.h
   - path: AppTask.h
   - path: CHIPProjectConfig.h
-  - path: LightingManager.h
 sdk:
   vendor: silabs
   id: simplicity_sdk
@@ -97,9 +95,6 @@ component:
 - package: matter
   vendor: silabs
   id: matter_leds
-- package: matter
-  vendor: silabs
-  id: matter_lighting
 - package: matter
   vendor: silabs
   id: matter_localization_configuration
