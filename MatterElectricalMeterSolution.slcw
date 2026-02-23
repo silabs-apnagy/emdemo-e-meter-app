@@ -1,0 +1,17 @@
+---
+workspace_name: "MatterElectricalMeterSolution"
+label: "lighting-app-series-2"
+quality: "production"
+package: "matter"
+description: "Solution containing both a bootloader and a Matter over Thread Lighting\
+  \ App Example"
+project:
+- id: "application"
+  path: "MatterElectricalMeterOverThread/MatterElectricalMeterOverThread.slcp"
+  output: "MatterElectricalMeterOverThread"
+- id: "bootloader"
+  path: "Matter-Bootloader/Matter-Bootloader.slcp"
+  output: "Matter-Bootloader"
+post_build:
+  profile: ""
+  path: "MatterElectricalMeterSolution.slpb"

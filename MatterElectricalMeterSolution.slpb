@@ -1,0 +1,16 @@
+---
+parameters: []
+constants:
+- name: "workspace_name"
+  value: "MatterElectricalMeterSolution"
+- path: "MatterElectricalMeterOverThread/MatterElectricalMeterOverThread.slpb"
+- path: "Matter-Bootloader/Matter-Bootloader.slpb"
+steps:
+- task: "convert"
+  output: "artifact/{{workspace_name}}-full.s37"
+  input:
+  - "{{bootloader_binary}}"
+  - "{{application_binary}}"
+- task: "create_gbl"
+  output: "artifact/{{workspace_name}}-app-only.gbl"
+  app: "{{application_binary}}"

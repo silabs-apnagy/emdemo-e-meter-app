@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterSolution_cmake/build/CMakeFiles/MatterElectricalMeterOverThread-base"
+		},
+		{
+			"file" : "/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterSolution_cmake/build/CMakeFiles/MatterElectricalMeterOverThread-(CONFIG).rule"
+		},
+		{
+			"file" : "/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterSolution_cmake/build/CMakeFiles/(CONFIG)/MatterElectricalMeterOverThread-complete.rule"
+		},
+		{
+			"file" : "/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterSolution_cmake/build/MatterElectricalMeterOverThread-prefix/src/MatterElectricalMeterOverThread-stamp/(CONFIG)/MatterElectricalMeterOverThread-build.rule"
+		},
+		{
+			"file" : "/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterSolution_cmake/build/MatterElectricalMeterOverThread-prefix/src/MatterElectricalMeterOverThread-stamp/(CONFIG)/MatterElectricalMeterOverThread-configure.rule"
+		},
+		{
+			"file" : "/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterSolution_cmake/build/MatterElectricalMeterOverThread-prefix/src/MatterElectricalMeterOverThread-stamp/(CONFIG)/MatterElectricalMeterOverThread-download.rule"
+		},
+		{
+			"file" : "/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterSolution_cmake/build/MatterElectricalMeterOverThread-prefix/src/MatterElectricalMeterOverThread-stamp/(CONFIG)/MatterElectricalMeterOverThread-install.rule"
+		},
+		{
+			"file" : "/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterSolution_cmake/build/MatterElectricalMeterOverThread-prefix/src/MatterElectricalMeterOverThread-stamp/(CONFIG)/MatterElectricalMeterOverThread-mkdir.rule"
+		},
+		{
+			"file" : "/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterSolution_cmake/build/MatterElectricalMeterOverThread-prefix/src/MatterElectricalMeterOverThread-stamp/(CONFIG)/MatterElectricalMeterOverThread-patch.rule"
+		},
+		{
+			"file" : "/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterSolution_cmake/build/MatterElectricalMeterOverThread-prefix/src/MatterElectricalMeterOverThread-stamp/(CONFIG)/MatterElectricalMeterOverThread-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"MatterElectricalMeterOverThread"
+		],
+		"name" : "MatterElectricalMeterOverThread"
+	}
+}

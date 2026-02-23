@@ -1,0 +1,1 @@
+cmd='/Users/apnagy/.silabs/slt/installs/conan/p/cmake0491e58cd027f/p/CMake.app/Contents/bin/cmake;--preset;project;-GNinja Multi-Config;-S;<SOURCE_DIR><SOURCE_SUBDIR>;-B;<BINARY_DIR>'

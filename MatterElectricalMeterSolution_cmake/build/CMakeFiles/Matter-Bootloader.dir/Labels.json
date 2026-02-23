@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterSolution_cmake/build/CMakeFiles/Matter-Bootloader-base"
+		},
+		{
+			"file" : "/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterSolution_cmake/build/CMakeFiles/Matter-Bootloader-(CONFIG).rule"
+		},
+		{
+			"file" : "/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterSolution_cmake/build/CMakeFiles/(CONFIG)/Matter-Bootloader-complete.rule"
+		},
+		{
+			"file" : "/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterSolution_cmake/build/Matter-Bootloader-prefix/src/Matter-Bootloader-stamp/(CONFIG)/Matter-Bootloader-build.rule"
+		},
+		{
+			"file" : "/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterSolution_cmake/build/Matter-Bootloader-prefix/src/Matter-Bootloader-stamp/(CONFIG)/Matter-Bootloader-configure.rule"
+		},
+		{
+			"file" : "/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterSolution_cmake/build/Matter-Bootloader-prefix/src/Matter-Bootloader-stamp/(CONFIG)/Matter-Bootloader-download.rule"
+		},
+		{
+			"file" : "/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterSolution_cmake/build/Matter-Bootloader-prefix/src/Matter-Bootloader-stamp/(CONFIG)/Matter-Bootloader-install.rule"
+		},
+		{
+			"file" : "/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterSolution_cmake/build/Matter-Bootloader-prefix/src/Matter-Bootloader-stamp/(CONFIG)/Matter-Bootloader-mkdir.rule"
+		},
+		{
+			"file" : "/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterSolution_cmake/build/Matter-Bootloader-prefix/src/Matter-Bootloader-stamp/(CONFIG)/Matter-Bootloader-patch.rule"
+		},
+		{
+			"file" : "/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterSolution_cmake/build/Matter-Bootloader-prefix/src/Matter-Bootloader-stamp/(CONFIG)/Matter-Bootloader-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"Matter-Bootloader"
+		],
+		"name" : "Matter-Bootloader"
+	}
+}
