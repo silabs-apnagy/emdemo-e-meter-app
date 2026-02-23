@@ -14,5 +14,5 @@ The project should build in VS code.
 
 ## Run
 Press PB1 on the WPK to toggle the Utility Price states
-Current states:
-Low - Mid - High (LED lights up)
+
+Current states: Low - Mid - High (LED lights up)
