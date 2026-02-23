@@ -2,6 +2,7 @@ autogen/
 simplicity_sdk*/
 .projectlinkstore
 cmake_gcc/build/
+MatterElectricalMeterSolution_cmake/build/
 *.cmake
 CMakePresets.json
 *.conf
