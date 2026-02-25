@@ -9,3 +9,4 @@ CMakePresets.json
 .vscode/
 artifact/
 trashed_modified_files/
+.DS_Store
