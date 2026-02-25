@@ -3,7 +3,7 @@
   <descriptors name="MatterElectricalMeterOverThread">
     <properties key="projectCommon.sdkId" value="com.silabs.sdk.stack.sisdk:2025.12.0._-761219516-563987568"/>
     <properties key="universalConfig.relativeWorkspacePath" value="../../MatterElectricalMeterSolution.slcw"/>
-    <properties key="universalConfig.generationDirectory" value="../../../../../../../../../../../SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/MatterElectricalMeterOverThread"/>
+    <properties key="universalConfig.generationDirectory" value=""/>
     <properties key="universalConfig.toolchainCompatibility" value="iar llvm gcc"/>
     <properties key="projectCommon.overwriteCopiedSources" value="false"/>
     <properties key="projectCommon.boardIds" value="brd4002a:0.0.0.A06 brd4187c:0.0.0.A01"/>
