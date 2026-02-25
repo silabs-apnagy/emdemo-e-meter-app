@@ -16,7 +16,10 @@
 
 #include "PriceReporterManager.h"
 
-
+#ifdef DISPLAY_ENABLED
+#include "demo-ui.h"
+#include "glib.h"
+#endif
 
 #ifdef SL_CATALOG_SIMPLE_LED_LED1_PRESENT
 #define LIGHT_LED 1
@@ -26,7 +29,7 @@
 
 #define APP_FUNCTION_BUTTON 0
 #define APP_SWITCH_BUTTON 1
- 
+
 using namespace chip;
 using namespace chip::app;
 using namespace chip::app::Clusters;
@@ -41,6 +44,29 @@ using namespace chip::TLV;
 using namespace ::chip::DeviceLayer;
 
 AppTask AppTask::sAppTask;
+
+#ifdef DISPLAY_ENABLED
+#define LCD_CTX() \
+    static_cast<GLIB_Context_t *>(AppTask::GetLCD().Context())
+namespace {
+// Custom UI callback used by SilabsLCD::WriteDemoUI().
+void DrawCustomDemoUI(GLIB_Context_t * context)
+{
+    uint8_t lineNb = 0;
+    char str[20];
+
+
+    GLIB_clear(LCD_CTX());
+    sprintf(str, "# E-Meter Status");
+    GLIB_drawStringOnLine(LCD_CTX(), str, lineNb++, GLIB_ALIGN_LEFT, 0, 0, true);
+    sprintf(str, "Price:%ld", static_cast<long>(AppTask::GetAppTask().GetPriceEuroCents()));
+    GLIB_drawStringOnLine(LCD_CTX(), str, lineNb++, GLIB_ALIGN_LEFT, 0, 0, true);
+
+    updateDisplay();
+}
+} // namespace
+#endif // DISPLAY_ENABLED
+
 CHIP_ERROR AppTask::AppInit()
 {
     CHIP_ERROR err = CHIP_NO_ERROR;
@@ -53,14 +79,19 @@ CHIP_ERROR AppTask::AppInit()
         appError(err);
     }
 
-
     sPriceLED.Init(LIGHT_LED);
     sPriceLED.Set(false);
-    //sPriceLED.Set(LightMgr().IsLightOn());
 
-// Update the LCD with the Stored value. Show QR Code if not provisioned
+    // Publish initial price at boot.
+    ApplyPricePreset(mPricePreset);
+
 #ifdef DISPLAY_ENABLED
-    //GetLCD().WriteDemoUI(LightMgr().IsLightOn());
+    // Install a custom UI renderer for the Demo screen.
+    GetLCD().SetCustomUI(DrawCustomDemoUI);
+
+    // Force an initial paint of the Demo screen content once the screen is shown.
+    RequestDemoScreenRefresh();
+
 #ifdef QR_CODE_ENABLED
 #ifdef SL_WIFI
     if (!ConnectivityMgr().IsWiFiStationProvisioned())
@@ -71,7 +102,7 @@ CHIP_ERROR AppTask::AppInit()
         GetLCD().ShowQRCode(true);
     }
 #endif // QR_CODE_ENABLED
-#endif
+#endif // DISPLAY_ENABLED
 
     BaseApplication::InitCompleteCallback(err);
     return err;
@@ -114,7 +145,16 @@ void AppTask::AppTaskMain(void * pvParameter)
 #ifdef DISPLAY_ENABLED
 void AppTask::UpdateDisplay()
 {
+    UpdateLCDStatusScreen();
+    GetLCD().CycleScreens();
 
+   
+    SilabsLCD::Screen_e screen;
+    GetLCD().GetScreen(screen);
+    if (screen == SilabsLCD::Screen_e::DemoScreen)
+    {
+        GetLCD().WriteDemoUI(); 
+    }
 }
 #endif // DISPLAY_ENABLED
 
@@ -136,36 +176,69 @@ void AppTask::ButtonEventHandler(uint8_t button, uint8_t btnAction)
     }
 }
 
-enum PricesEurocent {
-	LOW = 113,
-    MID = 399,
-	HIGH = 765
-};
+// ---- Price preset helpers ----
 
-static int price_eurocent = PricesEurocent::LOW;
+AppTask::PricePreset AppTask::NextPreset(PricePreset current)
+{
+    switch (current)
+    {
+    case PricePreset::Low:
+        return PricePreset::Mid;
+    case PricePreset::Mid:
+        return PricePreset::High;
+    case PricePreset::High:
+    default:
+        return PricePreset::Low;
+    }
+}
 
+AppTask::PricePreset AppTask::AdvancePricePreset()
+{
+    mPricePreset = NextPreset(mPricePreset);
+    return mPricePreset;
+}
+
+void AppTask::ApplyPricePreset(PricePreset preset)
+{
+    mPricePreset    = preset;
+    mPriceEuroCents = static_cast<int32_t>(preset);
+
+    switch (preset)
+    {
+    case PricePreset::Low:
+        sPriceLED.Set(false);       
+        break;
+    case PricePreset::Mid:
+        sPriceLED.Set(false);
+        break;
+    case PricePreset::High:
+    default:
+        sPriceLED.Blink(true);
+        break;
+    }
+
+    ChipStackLock chip_stack_lock;
+    PriceReporterManager::UpdatePriceInEuroCents(mPriceEuroCents);
+
+    RequestDemoScreenRefresh();
+}
+
+void AppTask::RequestDemoScreenRefresh()
+{
+#ifdef DISPLAY_ENABLED
+    SilabsLCD::Screen_e screen;
+    GetLCD().GetScreen(screen);
+    if (screen == SilabsLCD::Screen_e::DemoScreen)
+    {
+        BaseApplication::PostUpdateDisplayEvent(SilabsLCD::Screen_e::DemoScreen);
+    }
+#endif
+}
 
 void AppTask::ProccessButtonEvent(AppEvent * event)
 {
     VerifyOrReturn(event != nullptr);
     VerifyOrReturn(event->Type == AppEvent::kEventType_Button);
 
-    switch(price_eurocent){
-	case PricesEurocent::LOW:
-		price_eurocent = PricesEurocent::MID;
-		sPriceLED.Blink(500,500);
-		break;
-    case PricesEurocent::MID:
-        price_eurocent = PricesEurocent::HIGH;
-        sPriceLED.Blink(true);
-        break;
-	case PricesEurocent::HIGH:
-	default:
-		price_eurocent = PricesEurocent::LOW;
-		sPriceLED.Set(false);
-		break;
-	}
-
-    ChipStackLock chip_stack_lock;
-    PriceReporterManager::UpdatePriceInEuroCents(price_eurocent);
+    AppTask::GetAppTask().ApplyPricePreset(AppTask::GetAppTask().AdvancePricePreset());
 }

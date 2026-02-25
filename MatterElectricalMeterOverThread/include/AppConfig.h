@@ -21,7 +21,7 @@
 
 #include "silabs_utils.h"
 
-// ---- Lighting Example App Config ----
+// ---- E-Meter Example App Config ----
 
 #ifdef SL_CATALOG_ZIGBEE_ZCL_FRAMEWORK_CORE_PRESENT
 #include "sl_cmp_config.h"
@@ -31,7 +31,7 @@
 #include "ZigbeeSequentialConfig.h"
 #endif // SL_MATTER_ZIGBEE_CMP
 #else
-#define APP_TASK_NAME "Light"
+#define APP_TASK_NAME "E-Meter"
 #define BLE_DEV_NAME "SL-" APP_TASK_NAME
 
 #define ON_DEMO_BITMAP                                                                                                             \
@@ -92,7 +92,7 @@
 #endif // SL_CATALOG_ZIGBEE_ZCL_FRAMEWORK_CORE_PRESENT
 
 // Must match with Matter Light endpoint
-#define LIGHT_ENDPOINT 1
+#define METER_ENDPOINT 1
 
 // Time it takes in ms for the simulated actuator to move from one
 // state to another.

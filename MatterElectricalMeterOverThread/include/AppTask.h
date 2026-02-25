@@ -1,21 +1,3 @@
-/*
- *
- *    Copyright (c) 2020 Project CHIP Authors
- *    Copyright (c) 2019 Google LLC.
- *    All rights reserved.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
 #pragma once
 
 /**********************************************************
@@ -24,10 +6,7 @@
 
 #include "AppEvent.h"
 #include "BaseApplication.h"
-#include <app/clusters/occupancy-sensor-server/occupancy-sensor-server.h>
-#include <ble/BLEEndPoint.h>
 #include <lib/core/CHIPError.h>
-#include <memory>
 #include <platform/CHIPDeviceLayer.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -56,81 +35,44 @@ public:
 
     static AppTask & GetAppTask() { return sAppTask; }
 
-    /**
-     * @brief AppTask task main loop function
-     *
-     * @param pvParameter FreeRTOS task parameter
-     */
     static void AppTaskMain(void * pvParameter);
 
     CHIP_ERROR StartAppTask();
 
-    /**
-     * @brief Event handler when a button is pressed
-     * Function posts an event for button processing
-     *
-     * @param buttonHandle APP_LIGHT_SWITCH or APP_FUNCTION_BUTTON
-     * @param btnAction button action - SL_SIMPLE_BUTTON_PRESSED,
-     *                  SL_SIMPLE_BUTTON_RELEASED or SL_SIMPLE_BUTTON_DISABLED
-     */
     static void ButtonEventHandler(uint8_t button, uint8_t btnAction);
 
-    /**
-     * @brief Triggers button event processing for the application button.
-     *        Use the EventHandler structure to be used as a callback the Application events.
-     *
-     */
     static void ProccessButtonEvent(AppEvent * event);
 
-    /**
-     * @brief Triggers necessary updates when the Sensor values have been changed.
-     *        Use the EventHandler structure to be used as a callback the Application events.
-     */
     static void SensorAttributeUpdateEvent(AppEvent * event);
-
-    /**
-     * @brief Triggers necessary updates when the Occupancy values have been changed.
-     *        Use the EventHandler structure to be used as a callback the Application events.
-     */
     static void OccupancyAttributeUpdateEvent(AppEvent * event);
 
+    // Current tariff price cached in the app (in euro cents).
+    int32_t GetPriceEuroCents() const { return mPriceEuroCents; }
+
 #ifdef DISPLAY_ENABLED
-    /**
-     * @brief LCD callback function to cycle LCD display.
-     *        Function switch to the next LCD UI and update the show values.
-     */
     void UpdateDisplay() override;
 #endif // DISPLAY_ENABLED
 
 private:
     static AppTask sAppTask;
 
-    enum class kSensorUIEnum : uint8_t
+    // ---- Price preset handling (kept local to this app; no globals) ----
+    enum class PricePreset : int32_t
     {
-        kOccupancySensor = 0,
-        kSensor          = 1,
-        kStatusScreen    = 2,
-#ifdef QR_CODE_ENABLED
-        kQrCode = 3,
-        kCount  = 4,
-#else
-        kCount = 3,
-#endif
+        Low  = 113,
+        Mid  = 399,
+        High = 765,
     };
 
-    /**
-     * @brief Override of BaseApplication::AppInit() virtual method, called by BaseApplication::Init()
-     *
-     * @return CHIP_ERROR
-     */
+    static PricePreset NextPreset(PricePreset current);
+    void ApplyPricePreset(PricePreset preset);
+    PricePreset AdvancePricePreset();
+    void RequestDemoScreenRefresh();
+
+    PricePreset mPricePreset = PricePreset::Low;
+    int32_t mPriceEuroCents  = static_cast<int32_t>(PricePreset::Low);
+
     CHIP_ERROR AppInit() override;
 
-    /**
-     * @brief PB0 Button event processing function
-     *        Press and hold will trigger a factory reset timer start
-     *        Press and release will restart BLEAdvertising if not commisionned
-     *
-     * @param aEvent button event being processed
-     */
     static void ButtonHandler(AppEvent * aEvent);
 };
