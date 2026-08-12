@@ -200,24 +200,31 @@
 #endif
 // </e>
 // <h>  IPv6 Limits
-// <o OPENTHREAD_CONFIG_IP6_MAX_EXT_UCAST_ADDRS>  Maximum IPv6 external unicast addresses
+// <q OPENTHREAD_CONFIG_IP6_INIT_EXT_ADDR_POOL_ENABLE>  Runtime IPv6 external address pools
+// <i>  Enable runtime configuration of external unicast and multicast address pools via otIp6Init().
+#ifndef OPENTHREAD_CONFIG_IP6_INIT_EXT_ADDR_POOL_ENABLE
+#define OPENTHREAD_CONFIG_IP6_INIT_EXT_ADDR_POOL_ENABLE  0
+#endif
+#if OPENTHREAD_CONFIG_IP6_INIT_EXT_ADDR_POOL_ENABLE
+// <e OPENTHREAD_CONFIG_CLI_IFCONFIG_INIT_ENABLE>  CLI support for runtime IPv6 external address pools
+// <i>  Enable `ifconfig init` CLI command for testing otIp6Init() pool configuration.
+#ifndef OPENTHREAD_CONFIG_CLI_IFCONFIG_INIT_ENABLE
+#define OPENTHREAD_CONFIG_CLI_IFCONFIG_INIT_ENABLE  1
+#endif
+// </e>
+#else
+// <o OPENTHREAD_CONFIG_IP6_MAX_EXT_UCAST_ADDRS>  Maximum IPv6 external unicast addresses (ignored in runtime mode)
 // <i>  Maximum number of IPv6 unicast addresses allowed to be externally added
 // <d>  4
 #ifndef OPENTHREAD_CONFIG_IP6_MAX_EXT_UCAST_ADDRS
 #define OPENTHREAD_CONFIG_IP6_MAX_EXT_UCAST_ADDRS   4
 #endif
-// <o OPENTHREAD_CONFIG_IP6_MAX_EXT_MCAST_ADDRS>  Maximum IPv6 external multicast addresses
+// <o OPENTHREAD_CONFIG_IP6_MAX_EXT_MCAST_ADDRS>  Maximum IPv6 external multicast addresses (ignored in runtime mode)
 // <i>  Maximum number of IPv6 multicast addresses allowed to be externally added
 // <d>  4
 #ifndef OPENTHREAD_CONFIG_IP6_MAX_EXT_MCAST_ADDRS
 #define OPENTHREAD_CONFIG_IP6_MAX_EXT_MCAST_ADDRS   4
 #endif
-// <o OPENTHREAD_CONFIG_MLE_IP_ADDRS_TO_REGISTER>  Maximum IPv6 address registrations for MTD
-// <i>  The maximum number of IPv6 address registrations for MTD.
-// <i>  If left unchanged will default to the value of OPENTHREAD_CONFIG_MLE_IP_ADDRS_PER_CHILD
-// <d>  4
-#ifndef OPENTHREAD_CONFIG_MLE_IP_ADDRS_TO_REGISTER
-#define OPENTHREAD_CONFIG_MLE_IP_ADDRS_TO_REGISTER (OPENTHREAD_CONFIG_MLE_IP_ADDRS_PER_CHILD)
 #endif
 // </h>
 // <e>  Jam Detection
@@ -286,37 +293,13 @@
 #ifndef OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_NUM
 #define OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_NUM      2
 #endif
+// <e>  Instance-aware platform logging API
+#ifndef OPENTHREAD_CONFIG_LOG_INSTANCE_AWARE_API_ENABLE
+#define OPENTHREAD_CONFIG_LOG_INSTANCE_AWARE_API_ENABLE      0
+#endif
 // </e>
 // </e>
-// Define maximum total source match table entries for both OT and Zigbee.
-// In multi-instance builds (SoC or RCP/host), table must support all OT instances + Zigbee.
-// For single instance (default), table sized to just OT children.
-// This value is used to size all source match tables in both OT and Zigbee code.
-// Note: this is purposedly not being setup with CMSIS annotations.
-#ifndef RADIO_CONFIG_MAX_SRC_MATCH_ENTRIES
-#if OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_ENABLE
-#if SL_ZIGBEE_MAX_END_DEVICE_CHILDREN
-// Multipan / DMP case: OT + Zigbee
-#define RADIO_CONFIG_MAX_SRC_MATCH_ENTRIES                                                \
-    ((OPENTHREAD_CONFIG_MLE_MAX_CHILDREN * (OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_NUM - 1)) \
-     + SL_ZIGBEE_MAX_END_DEVICE_CHILDREN)
-#else
-// Multi-instance OT-only case
-#define RADIO_CONFIG_MAX_SRC_MATCH_ENTRIES \
-    (OPENTHREAD_CONFIG_MLE_MAX_CHILDREN * OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_NUM)
-#endif
-#else
-// Single-instance OT (SoC / NCP / non-multipan RCP)
-#define RADIO_CONFIG_MAX_SRC_MATCH_ENTRIES OPENTHREAD_CONFIG_MLE_MAX_CHILDREN
-#endif
-#endif
-// <h>  Spinel Match Table
-// <o OPENTHREAD_SPINEL_CONFIG_MAX_SRC_MATCH_ENTRIES>  Maximum number of spinel source match table entries
-// <i> Ensure that this value is the total of the number of openthread children times the number of openthread instances plus the number of Zigbee children.
-#ifndef OPENTHREAD_SPINEL_CONFIG_MAX_SRC_MATCH_ENTRIES
-#define OPENTHREAD_SPINEL_CONFIG_MAX_SRC_MATCH_ENTRIES RADIO_CONFIG_MAX_SRC_MATCH_ENTRIES
-#endif
-// </h>
+// </e>
 // <e>  OTNS (OpenThread Network Simulator)
 #ifndef OPENTHREAD_CONFIG_OTNS_ENABLE
 #define OPENTHREAD_CONFIG_OTNS_ENABLE               0
@@ -379,6 +362,40 @@
 #define OPENTHREAD_CONFIG_TMF_NETDIAG_CLIENT_ENABLE   1
 #endif
 // </e>
+// <s.32 OPENTHREAD_CONFIG_NET_DIAG_VENDOR_NAME> Vendor Name string
+// <i> Vendor Name string
+#ifndef OPENTHREAD_CONFIG_NET_DIAG_VENDOR_NAME
+#if OPENTHREAD_CONFIG_REFERENCE_DEVICE_ENABLE
+// <i> Default: "RD:Silicon Labs"
+#define OPENTHREAD_CONFIG_NET_DIAG_VENDOR_NAME "RD:Silicon Labs"
+#else
+// <i> Default: "Silicon Labs"
+#define OPENTHREAD_CONFIG_NET_DIAG_VENDOR_NAME "Silicon Labs"
+#endif
+#endif // OPENTHREAD_CONFIG_NET_DIAG_VENDOR_NAME
+// <s.32 OPENTHREAD_CONFIG_NET_DIAG_VENDOR_MODEL> Vendor Model string
+// <i> Vendor Model string
+// <i> Default: "OpenThread"
+#ifndef OPENTHREAD_CONFIG_NET_DIAG_VENDOR_MODEL
+#define OPENTHREAD_CONFIG_NET_DIAG_VENDOR_MODEL "OpenThread"
+#endif
+// <s.16 OPENTHREAD_CONFIG_NET_DIAG_VENDOR_SW_VERSION> Vendor SW Version string
+// <i> Vendor SW Version string
+// <i> Default: "3.1.1.0"
+#ifndef OPENTHREAD_CONFIG_NET_DIAG_VENDOR_SW_VERSION
+#define OPENTHREAD_CONFIG_NET_DIAG_VENDOR_SW_VERSION "3.1.1.0"
+#endif
+// <s.96 OPENTHREAD_CONFIG_NET_DIAG_VENDOR_APP_URL> Vendor App URL string
+// <i> Vendor App URL string
+// <i> Default: "www.silabs.com"
+#ifndef OPENTHREAD_CONFIG_NET_DIAG_VENDOR_APP_URL
+#define OPENTHREAD_CONFIG_NET_DIAG_VENDOR_APP_URL "www.silabs.com"
+#endif
+// <e>  Run-time configuration of Vendor Info
+#ifndef OPENTHREAD_CONFIG_NET_DIAG_VENDOR_INFO_SET_API_ENABLE
+#define OPENTHREAD_CONFIG_NET_DIAG_VENDOR_INFO_SET_API_ENABLE   1
+#endif
+// </e>
 // <e>  Time Synchronization Service
 #ifndef OPENTHREAD_CONFIG_TIME_SYNC_ENABLE
 #define OPENTHREAD_CONFIG_TIME_SYNC_ENABLE          0
@@ -399,6 +416,11 @@
 #define OPENTHREAD_CONFIG_MAC_BEACON_PAYLOAD_PARSING_ENABLE      1
 #endif
 // </e>
+// <e> Log crash dump after initialization
+#ifndef OPENTHREAD_CONFIG_PLATFORM_LOG_CRASH_DUMP_ENABLE
+#define OPENTHREAD_CONFIG_PLATFORM_LOG_CRASH_DUMP_ENABLE 0
+#endif
+// </e>
 // <h>  Radio Driver RX buffers
 // <o SL_OPENTHREAD_RADIO_RX_BUFFER_COUNT>  Maximum number of RX buffers
 // <i>  The maximum number of RX buffers to use in the radio driver.
@@ -407,66 +429,6 @@
 #define SL_OPENTHREAD_RADIO_RX_BUFFER_COUNT       16
 #endif
 // </h>
-// </h>
-// <h>  Logging
-// <o   OPENTHREAD_CONFIG_LOG_OUTPUT> LOG_OUTPUT
-//      <OPENTHREAD_CONFIG_LOG_OUTPUT_NONE             => NONE
-//      <OPENTHREAD_CONFIG_LOG_OUTPUT_APP              => APP
-//      <OPENTHREAD_CONFIG_LOG_OUTPUT_PLATFORM_DEFINED => PLATFORM_DEFINED
-// <i>  Default: OPENTHREAD_CONFIG_LOG_OUTPUT_APP
-// <d>  OPENTHREAD_CONFIG_LOG_OUTPUT_APP
-#ifndef OPENTHREAD_CONFIG_LOG_OUTPUT
-#define OPENTHREAD_CONFIG_LOG_OUTPUT OPENTHREAD_CONFIG_LOG_OUTPUT_APP
-#endif
-
-// <q>  DYNAMIC_LOG_LEVEL
-#ifndef OPENTHREAD_CONFIG_LOG_LEVEL_DYNAMIC_ENABLE
-#define OPENTHREAD_CONFIG_LOG_LEVEL_DYNAMIC_ENABLE  0
-#endif
-
-// <e>  Enable Logging
-#define OPENTHREAD_FULL_LOGS_ENABLE                 0
-#if     OPENTHREAD_FULL_LOGS_ENABLE
-
-// <h>  Note: Enabling higher log levels, which include logging packet details, can cause delays which may result in join failures.
-// <o   OPENTHREAD_CONFIG_LOG_LEVEL> LOG_LEVEL
-//      <OT_LOG_LEVEL_NONE       => NONE
-//      <OT_LOG_LEVEL_CRIT       => CRIT
-//      <OT_LOG_LEVEL_WARN       => WARN
-//      <OT_LOG_LEVEL_NOTE       => NOTE
-//      <OT_LOG_LEVEL_INFO       => INFO
-//      <OT_LOG_LEVEL_DEBG       => DEBG
-// <i>  Default: OT_LOG_LEVEL_DEBG
-// <d>  OT_LOG_LEVEL_DEBG
-#ifndef OPENTHREAD_CONFIG_LOG_LEVEL
-#define OPENTHREAD_CONFIG_LOG_LEVEL OT_LOG_LEVEL_DEBG
-#endif
-// <q>  CLI
-#ifndef OPENTHREAD_CONFIG_LOG_CLI
-#define OPENTHREAD_CONFIG_LOG_CLI                   1
-#endif
-// <q>  PKT_DUMP
-#ifndef OPENTHREAD_CONFIG_LOG_PKT_DUMP
-#define OPENTHREAD_CONFIG_LOG_PKT_DUMP              1
-#endif
-// <q>  PLATFORM
-#ifndef OPENTHREAD_CONFIG_LOG_PLATFORM
-#define OPENTHREAD_CONFIG_LOG_PLATFORM              1
-#endif
-// <q>  PREPEND_LEVEL
-#ifndef OPENTHREAD_CONFIG_LOG_PREPEND_LEVEL
-#define OPENTHREAD_CONFIG_LOG_PREPEND_LEVEL         1
-#endif
-
-#endif // OPENTHREAD_FULL_LOGS_ENABLE
-
-// <q> Log crash dump after initialization
-#ifndef OPENTHREAD_CONFIG_PLATFORM_LOG_CRASH_DUMP_ENABLE
-#define OPENTHREAD_CONFIG_PLATFORM_LOG_CRASH_DUMP_ENABLE 0
-#endif
-
-// </h>
-// </e>
 // </h>
 
 // <<< end of configuration section >>>

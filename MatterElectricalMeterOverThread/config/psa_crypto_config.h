@@ -105,13 +105,12 @@
 
 #ifndef SL_CRYPTOACC_BUILTIN_KEY_PUF_ALG
 // <o SL_CRYPTOACC_BUILTIN_KEY_PUF_ALG> Built-in PUF Key Algorithm
-// <PSA_ALG_PBKDF2_AES_CMAC_PRF_128=> PBKDF2 (CMAC-AES-128-PRF)
+// <PSA_ALG_SP800_108R1_CMAC=> SP 800-108r1 KDF (AES-CMAC, recommended)
 // <PSA_ALG_CMAC=> CMAC
 // <i> PSA Crypto only allows one specific usage algorithm per built-in key ID.
-// <i> It is recommended to only use the PUF key for deriving further key
-// <i> material.
-// <i> Default: PSA_ALG_PBKDF2_AES_CMAC_PRF_128
-#define SL_CRYPTOACC_BUILTIN_KEY_PUF_ALG  (PSA_ALG_PBKDF2_AES_CMAC_PRF_128)
+// <i> On VSE+PUF devices key derivation uses NIST SP 800-108r1.
+// <i> Default: PSA_ALG_SP800_108R1_CMAC
+#define SL_CRYPTOACC_BUILTIN_KEY_PUF_ALG  (PSA_ALG_SP800_108R1_CMAC)
 #endif // SL_CRYPTOACC_BUILTIN_KEY_PUF_ALG
 
 // </h>

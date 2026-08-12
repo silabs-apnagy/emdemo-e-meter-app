@@ -1,0 +1,87 @@
+# Silicon Labs Project Configuration Tools: slcp, v0, Component selection file.
+project_name: Matter-Bootloader
+label: Matter-Bootloader
+description: |
+  This sample configuration of the simplicity bootloader configures the bootloader to use an external SPI flash to store firmware update images. The storage configuration is set up to store a single firmware update image at a time, in a single storage slot. The storage slot is configured to start at address 0x0 of the SPI flash, and have a size of 1024 kB. This can be configured on the "Storage" tab. This bootloader is compatible with Matter sample examples running on a Series 2 device.
+package: matter
+quality: production
+readme:
+- path: readme.md
+sdk:
+  vendor: silabs
+  id: simplicity_sdk
+  version: 2025.12.0
+toolchain_settings: [
+  ]
+component:
+- package: matter
+  vendor: silabs
+  id: matter_syscall_stubs
+- package: simplicity_sdk
+  vendor: silabs
+  id: EFR32MG24B220F1536IM48
+- package: simplicity_sdk
+  vendor: silabs
+  id: bootloader_aes_sha_ecdsa
+- package: simplicity_sdk
+  vendor: silabs
+  id: bootloader_common_storage_single
+- package: simplicity_sdk
+  vendor: silabs
+  id: bootloader_compression_lzma
+- package: simplicity_sdk
+  vendor: silabs
+  id: bootloader_core
+- package: simplicity_sdk
+  vendor: silabs
+  id: bootloader_crc
+- package: simplicity_sdk
+  vendor: silabs
+  id: bootloader_debug
+- package: simplicity_sdk
+  vendor: silabs
+  id: bootloader_delay_driver
+- package: simplicity_sdk
+  vendor: silabs
+  id: bootloader_gbl_compression_lz4
+- package: simplicity_sdk
+  vendor: silabs
+  id: bootloader_image_parser
+- package: simplicity_sdk
+  vendor: silabs
+  id: bootloader_spi_controller_driver
+- package: simplicity_sdk
+  vendor: silabs
+  id: bootloader_spiflash_storage
+- package: simplicity_sdk
+  vendor: silabs
+  id: bootloader_token_management
+- package: simplicity_sdk
+  vendor: silabs
+  id: brd4002a
+- package: simplicity_sdk
+  vendor: silabs
+  id: brd4187c
+- package: simplicity_sdk
+  vendor: silabs
+  id: psa_crypto_config
+configuration:
+- name: BTL_STORAGE_BASE_ADDRESS
+  value: '0'
+- name: SLOT0_ENABLE
+  value: '1'
+- name: SLOT0_START
+  value: '0'
+- name: SLOT0_SIZE
+  value: '1048576'
+ui_hints:
+  highlight:
+  - path: readme.md
+sdk_extension:
+- vendor: silabs
+  id: matter
+  version: 2.8.0
+post_build:
+- path: Matter-Bootloader.slpb
+  profile: bootloader_series_2
+

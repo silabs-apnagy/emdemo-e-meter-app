@@ -47,6 +47,12 @@
 // <i> Default: 1
 #define SL_MEMORY_MANAGER_STATISTICS_API_ENABLE  1
 
+// <q SL_MEMORY_MANAGER_POOL_DOUBLE_FREE_PROTECTION_ENABLE> Enables the double free protection for the pool.
+// <i> Setting this configuration to 0 will disable the double free protection for the memory pool. saving ~100 bytes of code.
+// <i> This setting has no effect on the memory pools power aware version.
+// <i> Default: 1
+#define SL_MEMORY_MANAGER_POOL_DOUBLE_FREE_PROTECTION_ENABLE 1
+
 // </h>
 
 // <<< end of configuration section >>>
@@ -57,5 +63,13 @@
 // <i> If this configuration is disabled, the memory manager will not attempt to use alternative memory regions for allocations even if using the fallback parameters.
 // <i> Default: 1
 #define SL_MEMORY_MANAGER_HEAP_FALLBACK_EN 1
+
+// <q SL_MEMORY_MANAGER_STATISTICS_RETENTION_ENABLE> Enables retention statistics (retained size, retained high watermark, bank counts).
+// <i> Requires bank-retention hardware on the target; SL_CATALOG_BANK_RETENTION_CONTROL_* is defined only for devices that implement it (not every part or kit).
+// <i> Software configuration alone cannot add bank retention where the silicon has no such feature.
+// <i> Independent of heap statistics (SL_MEMORY_MANAGER_STATISTICS_API_ENABLE).
+// <i> When disabled, retention getters return (size_t)-1 or SL_STATUS_NOT_AVAILABLE.
+// <i> Default: 0.
+#define SL_MEMORY_MANAGER_STATISTICS_RETENTION_ENABLE  0
 
 #endif /* SL_MEMORY_MANAGER_CONFIG_H */
