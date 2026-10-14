@@ -6,6 +6,7 @@
 
 #include "AppEvent.h"
 #include "BaseApplication.h"
+#include "SimulatedMeter.h"
 #include <lib/core/CHIPError.h>
 #include <platform/CHIPDeviceLayer.h>
 #include <stdbool.h>
@@ -48,6 +49,8 @@ public:
 
     // Current tariff price cached in the app (in euro cents).
     int32_t GetPriceEuroCents() const { return mPriceEuroCents; }
+    static void ApplyMeterProfile(uint8_t profile);
+    static void UpdateMeterMeasurements(intptr_t context);
 
 #ifdef DISPLAY_ENABLED
     void UpdateDisplay() override;

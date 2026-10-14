@@ -40,6 +40,12 @@ void MatterPostAttributeChangeCallback(const chip::app::ConcreteAttributePath & 
 
     switch (clusterId)
     {
+    case ModeSelect::Id:
+        if (attributeId == ModeSelect::Attributes::CurrentMode::Id && value != nullptr && size == sizeof(uint8_t))
+        {
+            AppTask::ApplyMeterProfile(*value);
+        }
+        break;
     case Identify::Id:
         ChipLogProgress(Zcl, "Identify attribute ID: " ChipLogFormatMEI " Type: %u Value: %u, length %u",
                         ChipLogValueMEI(attributeId), type, *value, size);

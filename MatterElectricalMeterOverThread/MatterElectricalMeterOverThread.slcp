@@ -97,6 +97,9 @@ component:
   id: matter_log_uart
 - package: matter
   vendor: silabs
+  id: matter_mode_select
+- package: matter
+  vendor: silabs
   id: matter_network_commissioning
 - package: matter
   vendor: silabs

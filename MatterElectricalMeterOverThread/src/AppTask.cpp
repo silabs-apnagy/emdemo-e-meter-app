@@ -15,6 +15,23 @@
 #include <sl_cmsis_os2_common.h>
 
 #include "PriceReporterManager.h"
+#include "SimulatedMeter.h"
+
+#include <app/clusters/electrical-power-measurement-server/CodegenIntegration.h>
+#include <app/clusters/electrical-energy-measurement-server/CodegenIntegration.h>
+#include <app/clusters/mode-select-server/supported-modes-manager.h>
+#include <app-common/zap-generated/attributes/Accessors.h>
+#include <app/data-model/List.h>
+#include <app/reporting/reporting.h>
+#include <app/server/Server.h>
+#include <app/util/attribute-storage.h>
+#include <lib/support/CHIPMem.h>
+#include <lib/support/CodeUtils.h>
+#include <memory>
+#include <chrono>
+#include <cstring>
+#include "FreeRTOS.h"
+#include "timers.h"
 
 #ifdef DISPLAY_ENABLED
 #include "demo-ui.h"
@@ -38,6 +55,106 @@ using namespace ::chip::DeviceLayer::Silabs;
 
 namespace {
 LEDWidget sPriceLED; // Use LEDWidget for basic LED functionality
+
+constexpr EndpointId kMeterEndpoint = 1;
+constexpr uint32_t kMeterUpdatePeriodMs = 5000;
+SimulatedMeter sMeter;
+TimerHandle_t sMeterTimer = nullptr;
+
+using MeterModeOption = ModeSelect::Structs::ModeOptionStruct::Type;
+using MeterSemanticTag = ModeSelect::Structs::SemanticTagStruct::Type;
+const MeterModeOption kMeterModes[] = {
+    { .label = "Night"_span, .mode = 0, .semanticTags = DataModel::List<const MeterSemanticTag>{} },
+    { .label = "Day"_span, .mode = 1, .semanticTags = DataModel::List<const MeterSemanticTag>{} },
+    { .label = "Peak"_span, .mode = 2, .semanticTags = DataModel::List<const MeterSemanticTag>{} },
+};
+
+class MeterModesManager final : public ModeSelect::SupportedModesManager
+{
+public:
+    ModeOptionsProvider getModeOptionsProvider(EndpointId endpoint) const override
+    {
+        return endpoint == kMeterEndpoint ? ModeOptionsProvider{ kMeterModes, kMeterModes + 3 } : ModeOptionsProvider{};
+    }
+    chip::Protocols::InteractionModel::Status getModeOptionByMode(EndpointId endpoint, uint8_t mode,
+                                                                   const MeterModeOption ** option) const override
+    {
+        using Status = chip::Protocols::InteractionModel::Status;
+        if (option == nullptr) return Status::Failure;
+        *option = nullptr;
+        if (endpoint != kMeterEndpoint) return Status::UnsupportedCluster;
+        for (const auto & candidate : kMeterModes)
+        {
+            if (candidate.mode == mode) { *option = &candidate; return Status::Success; }
+        }
+        return Status::InvalidCommand;
+    }
+};
+MeterModesManager sMeterModesManager;
+
+class MeterPowerDelegate final : public ElectricalPowerMeasurement::Delegate
+{
+public:
+    ElectricalPowerMeasurement::PowerModeEnum GetPowerMode() override { return ElectricalPowerMeasurement::PowerModeEnum::kAc; }
+    uint8_t GetNumberOfMeasurementTypes() override { return 0; }
+    CHIP_ERROR StartAccuracyRead() override { return CHIP_NO_ERROR; }
+    CHIP_ERROR GetAccuracyByIndex(uint8_t, ElectricalPowerMeasurement::Structs::MeasurementAccuracyStruct::Type &) override { return CHIP_ERROR_NOT_FOUND; }
+    CHIP_ERROR EndAccuracyRead() override { return CHIP_NO_ERROR; }
+    CHIP_ERROR StartRangesRead() override { return CHIP_NO_ERROR; }
+    CHIP_ERROR GetRangeByIndex(uint8_t, ElectricalPowerMeasurement::Structs::MeasurementRangeStruct::Type &) override { return CHIP_ERROR_NOT_FOUND; }
+    CHIP_ERROR EndRangesRead() override { return CHIP_NO_ERROR; }
+    CHIP_ERROR StartHarmonicCurrentsRead() override { return CHIP_NO_ERROR; }
+    CHIP_ERROR GetHarmonicCurrentsByIndex(uint8_t, ElectricalPowerMeasurement::Structs::HarmonicMeasurementStruct::Type &) override { return CHIP_ERROR_NOT_FOUND; }
+    CHIP_ERROR EndHarmonicCurrentsRead() override { return CHIP_NO_ERROR; }
+    CHIP_ERROR StartHarmonicPhasesRead() override { return CHIP_NO_ERROR; }
+    CHIP_ERROR GetHarmonicPhasesByIndex(uint8_t, ElectricalPowerMeasurement::Structs::HarmonicMeasurementStruct::Type &) override { return CHIP_ERROR_NOT_FOUND; }
+    CHIP_ERROR EndHarmonicPhasesRead() override { return CHIP_NO_ERROR; }
+    DataModel::Nullable<int64_t> GetVoltage() override { return DataModel::NullNullable; }
+    DataModel::Nullable<int64_t> GetActiveCurrent() override { return DataModel::NullNullable; }
+    DataModel::Nullable<int64_t> GetReactiveCurrent() override { return DataModel::NullNullable; }
+    DataModel::Nullable<int64_t> GetApparentCurrent() override { return DataModel::NullNullable; }
+    DataModel::Nullable<int64_t> GetActivePower() override { return DataModel::MakeNullable(static_cast<int64_t>(mPowerMilliW)); }
+    DataModel::Nullable<int64_t> GetReactivePower() override { return DataModel::NullNullable; }
+    DataModel::Nullable<int64_t> GetApparentPower() override { return DataModel::NullNullable; }
+    DataModel::Nullable<int64_t> GetRMSVoltage() override { return DataModel::NullNullable; }
+    DataModel::Nullable<int64_t> GetRMSCurrent() override { return DataModel::NullNullable; }
+    DataModel::Nullable<int64_t> GetRMSPower() override { return DataModel::NullNullable; }
+    DataModel::Nullable<int64_t> GetFrequency() override { return DataModel::NullNullable; }
+    DataModel::Nullable<int64_t> GetPowerFactor() override { return DataModel::NullNullable; }
+    DataModel::Nullable<int64_t> GetNeutralCurrent() override { return DataModel::NullNullable; }
+    void SetPower(uint32_t watts) { mPowerMilliW = static_cast<int64_t>(watts) * 1000; }
+private:
+    int64_t mPowerMilliW = 0;
+};
+MeterPowerDelegate sPowerDelegate;
+std::unique_ptr<ElectricalPowerMeasurement::Instance> sPowerInstance;
+std::unique_ptr<ElectricalEnergyMeasurement::ElectricalEnergyMeasurementAttrAccess> sEnergyAccess;
+
+void MeterTimerCallback(TimerHandle_t)
+{
+    const CHIP_ERROR err = DeviceLayer::PlatformMgr().ScheduleWork(AppTask::UpdateMeterMeasurements, 0);
+    if (err != CHIP_NO_ERROR) ChipLogError(AppServer, "Could not schedule meter measurement update: %s", ErrorStr(err));
+}
+
+CHIP_ERROR InitializeMeterMatter()
+{
+    sPowerInstance = std::make_unique<ElectricalPowerMeasurement::Instance>(
+        kMeterEndpoint, sPowerDelegate,
+        BitMask<ElectricalPowerMeasurement::Feature, uint32_t>(ElectricalPowerMeasurement::Feature::kAlternatingCurrent),
+        BitMask<ElectricalPowerMeasurement::OptionalAttributes, uint32_t>{});
+    ReturnErrorOnFailure(sPowerInstance->Init());
+
+    sEnergyAccess = std::make_unique<ElectricalEnergyMeasurement::ElectricalEnergyMeasurementAttrAccess>(
+        BitMask<ElectricalEnergyMeasurement::Feature, uint32_t>(ElectricalEnergyMeasurement::Feature::kImportedEnergy,
+            ElectricalEnergyMeasurement::Feature::kCumulativeEnergy, ElectricalEnergyMeasurement::Feature::kPeriodicEnergy),
+        BitMask<ElectricalEnergyMeasurement::OptionalAttributes, uint32_t>{}, kMeterEndpoint);
+    ReturnErrorOnFailure(sEnergyAccess->Init());
+
+    ModeSelect::setSupportedModesManager(&sMeterModesManager);
+    ModeSelect::Attributes::CurrentMode::Set(kMeterEndpoint, static_cast<uint8_t>(sMeter.GetProfile()));
+    sPowerDelegate.SetPower(sMeter.Tick(0).activePowerW);
+    return CHIP_NO_ERROR;
+}
 } // namespace
 
 using namespace chip::TLV;
@@ -166,6 +283,27 @@ CHIP_ERROR AppTask::AppInit()
         appError(err);
     }
 
+    err = DeviceLayer::PlatformMgr().ScheduleWork([](intptr_t) {
+        const CHIP_ERROR initError = InitializeMeterMatter();
+        if (initError != CHIP_NO_ERROR)
+        {
+            ChipLogError(AppServer, "Meter measurement initialization failed: %s", ErrorStr(initError));
+            appError(initError);
+        }
+    }, 0);
+    if (err != CHIP_NO_ERROR)
+    {
+        ChipLogError(AppServer, "Could not schedule meter measurement initialization: %s", ErrorStr(err));
+        return err;
+    }
+
+    sMeterTimer = xTimerCreate("meter", pdMS_TO_TICKS(kMeterUpdatePeriodMs), pdTRUE, nullptr, MeterTimerCallback);
+    if (sMeterTimer == nullptr || xTimerStart(sMeterTimer, 0) != pdPASS)
+    {
+        ChipLogError(AppServer, "Could not start simulated meter timer");
+        return CHIP_ERROR_INTERNAL;
+    }
+
     sPriceLED.Init(LIGHT_LED);
     sPriceLED.Set(false);
 
@@ -192,6 +330,36 @@ CHIP_ERROR AppTask::AppInit()
 
     BaseApplication::InitCompleteCallback(err);
     return err;
+}
+
+void AppTask::ApplyMeterProfile(uint8_t profile)
+{
+    if (!sMeter.SetProfile(profile))
+    {
+        ChipLogError(AppServer, "Ignoring unsupported meter profile %u", profile);
+    }
+}
+
+void AppTask::UpdateMeterMeasurements(intptr_t)
+{
+    const auto reading = sMeter.Tick(kMeterUpdatePeriodMs / 1000);
+    sPowerDelegate.SetPower(reading.activePowerW);
+    MatterReportingAttributeChangeCallback(kMeterEndpoint, ElectricalPowerMeasurement::Id,
+        ElectricalPowerMeasurement::Attributes::ActivePower::Id);
+
+    using namespace ElectricalEnergyMeasurement;
+    Structs::EnergyMeasurementStruct::Type measurement{};
+    measurement.startTimestamp.ClearValue();
+    measurement.startSystime.ClearValue();
+    measurement.energy = reading.cumulativeImportedEnergyMWh;
+    const auto uptime = std::chrono::duration_cast<System::Clock::Milliseconds64>(Server::GetInstance().TimeSinceInit());
+    measurement.endSystime.SetValue(static_cast<uint64_t>(uptime.count()));
+    NotifyCumulativeEnergyMeasured(kMeterEndpoint, DataModel::MakeNullable(measurement), DataModel::NullNullable);
+    MatterReportingAttributeChangeCallback(kMeterEndpoint, Id, Attributes::CumulativeEnergyImported::Id);
+
+    measurement.energy = reading.periodicImportedEnergyMWh;
+    NotifyPeriodicEnergyMeasured(kMeterEndpoint, DataModel::MakeNullable(measurement), DataModel::NullNullable);
+    MatterReportingAttributeChangeCallback(kMeterEndpoint, Id, Attributes::PeriodicEnergyImported::Id);
 }
 
 CHIP_ERROR AppTask::StartAppTask()

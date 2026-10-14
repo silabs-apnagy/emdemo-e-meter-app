@@ -43,11 +43,12 @@ endif()
 add_executable(MatterElectricalMeterOverThread
     # Add additional sources here
     "${CMAKE_SOURCE_DIR}/../src/PriceReporterManager.cpp"
+    "${CMAKE_SOURCE_DIR}/../src/SimulatedMeter.cpp"
 )
 
 target_include_directories(MatterElectricalMeterOverThread PUBLIC
     # Add additional include paths here
-    "${CMAKE_SOURCE_DIR}/../include/PriceReportManager.h"
+    "${CMAKE_SOURCE_DIR}/../include"
 )
 
 target_compile_definitions(MatterElectricalMeterOverThread PUBLIC
