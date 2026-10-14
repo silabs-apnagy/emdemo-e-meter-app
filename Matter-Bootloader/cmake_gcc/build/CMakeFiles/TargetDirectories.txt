@@ -1,4 +1,0 @@
-/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/Matter-Bootloader/cmake_gcc/build/CMakeFiles/slc.dir
-/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/Matter-Bootloader/cmake_gcc/build/CMakeFiles/Matter-Bootloader.dir
-/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/Matter-Bootloader/cmake_gcc/build/CMakeFiles/edit_cache.dir
-/Users/apnagy/SimplicityStudio/v6_workspace/MatterElectricalMeterSolution/Matter-Bootloader/cmake_gcc/build/CMakeFiles/rebuild_cache.dir

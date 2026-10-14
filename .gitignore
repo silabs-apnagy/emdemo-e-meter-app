@@ -7,6 +7,7 @@ MatterElectricalMeterSolution_cmake/build/
 CMakePresets.json
 *.conf
 .vscode/
+.codex/
 artifact/
 trashed_modified_files/
 .DS_Store
