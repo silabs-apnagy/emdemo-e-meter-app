@@ -1,10 +1,11 @@
 # E-meter firmware — conference 2.0 preview
 
 Checkpoint: **2026-10-20**. Feature scope is frozen; bug fixes/validation only.
-Working branch: `ElectricalMeter2.0`. Committed base: `7ec2337`; mode-linked pricing
-and LCD work remain local changes to commit before updating the super-repo pin.
+Working branch: `ElectricalMeter2.0`. Behavior baseline: `bc2fdda`, including
+mode-linked pricing and LCD work. The operator confirms the running firmware
+represents the demo behavior below. Exact flashed artifact hashes remain to record.
 
-## Current local behavior
+## Current demo behavior
 
 - xG24 / BRD4187C Matter-over-Thread simulated **house load**, not measured grid import.
 - Separate `SimulatedMeter` model; AppTask handles CHIP/Matter interaction.
