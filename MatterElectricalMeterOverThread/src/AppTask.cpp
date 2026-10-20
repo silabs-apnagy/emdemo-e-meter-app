@@ -260,7 +260,21 @@ void DrawCustomDemoUI(GLIB_Context_t * context)
     sprintf(str, "E-Meter");
     GLIB_drawStringOnLine(LCD_CTX(), str, lineNb++, GLIB_ALIGN_CENTER, 0, 0, true);
     lineNb++; //empty lines
-    lineNb++; //empty lines
+    const char * mode = "Unknown";
+    switch (sMeter.GetProfile())
+    {
+    case SimulatedMeter::Profile::Night:
+        mode = "Night";
+        break;
+    case SimulatedMeter::Profile::Day:
+        mode = "Day";
+        break;
+    case SimulatedMeter::Profile::Peak:
+        mode = "Peak";
+        break;
+    }
+    GLIB_drawStringOnLine(LCD_CTX(), "Mode:", lineNb++, GLIB_ALIGN_CENTER, 0, 0, true);
+    GLIB_drawStringOnLine(LCD_CTX(), mode, lineNb++, GLIB_ALIGN_CENTER, 0, 0, true);
     sprintf(str, "%ld", static_cast<long>(AppTask::GetAppTask().GetPriceEuroCents()));
     GLIB_drawStringOnLine(LCD_CTX(), str, lineNb++, GLIB_ALIGN_CENTER, 0, 0, true);
     sprintf(str, "ct/kWh");
@@ -283,6 +297,9 @@ CHIP_ERROR AppTask::AppInit()
         appError(err);
     }
 
+    sPriceLED.Init(LIGHT_LED);
+    sPriceLED.Set(false);
+
     err = DeviceLayer::PlatformMgr().ScheduleWork([](intptr_t) {
         const CHIP_ERROR initError = InitializeMeterMatter();
         if (initError != CHIP_NO_ERROR)
@@ -304,11 +321,11 @@ CHIP_ERROR AppTask::AppInit()
         return CHIP_ERROR_INTERNAL;
     }
 
-    sPriceLED.Init(LIGHT_LED);
-    sPriceLED.Set(false);
-
     // Publish initial price at boot.
-    ApplyPricePreset(mPricePreset);
+    {
+        ChipStackLock chip_stack_lock;
+        ApplyPricePreset(mPricePreset);
+    }
 
 #ifdef DISPLAY_ENABLED
     // Install a custom UI renderer for the Demo screen.
@@ -337,6 +354,21 @@ void AppTask::ApplyMeterProfile(uint8_t profile)
     if (!sMeter.SetProfile(profile))
     {
         ChipLogError(AppServer, "Ignoring unsupported meter profile %u", profile);
+        return;
+    }
+    // All profile changes, including PB1 and Matter ChangeToMode, converge on
+    // this callback on the CHIP thread. Keep load and price in the same state.
+    switch (sMeter.GetProfile())
+    {
+    case SimulatedMeter::Profile::Night:
+        GetAppTask().ApplyPricePreset(PricePreset::Low);
+        break;
+    case SimulatedMeter::Profile::Day:
+        GetAppTask().ApplyPricePreset(PricePreset::Mid);
+        break;
+    case SimulatedMeter::Profile::Peak:
+        GetAppTask().ApplyPricePreset(PricePreset::High);
+        break;
     }
 }
 
@@ -432,26 +464,6 @@ void AppTask::ButtonEventHandler(uint8_t button, uint8_t btnAction)
 
 // ---- Price preset helpers ----
 
-AppTask::PricePreset AppTask::NextPreset(PricePreset current)
-{
-    switch (current)
-    {
-    case PricePreset::Low:
-        return PricePreset::Mid;
-    case PricePreset::Mid:
-        return PricePreset::High;
-    case PricePreset::High:
-    default:
-        return PricePreset::Low;
-    }
-}
-
-AppTask::PricePreset AppTask::AdvancePricePreset()
-{
-    mPricePreset = NextPreset(mPricePreset);
-    return mPricePreset;
-}
-
 void AppTask::ApplyPricePreset(PricePreset preset)
 {
     mPricePreset    = preset;
@@ -471,7 +483,6 @@ void AppTask::ApplyPricePreset(PricePreset preset)
         break;
     }
 
-    ChipStackLock chip_stack_lock;
     PriceReporterManager::UpdatePriceInEuroCents(mPriceEuroCents);
 
     RequestDemoScreenRefresh();
@@ -494,5 +505,16 @@ void AppTask::ProccessButtonEvent(AppEvent * event)
     VerifyOrReturn(event != nullptr);
     VerifyOrReturn(event->Type == AppEvent::kEventType_Button);
 
-    AppTask::GetAppTask().ApplyPricePreset(AppTask::GetAppTask().AdvancePricePreset());
+    const CHIP_ERROR err = DeviceLayer::PlatformMgr().ScheduleWork([](intptr_t) {
+        const uint8_t next = (static_cast<uint8_t>(sMeter.GetProfile()) + 1) % 3;
+        const auto status = ModeSelect::Attributes::CurrentMode::Set(kMeterEndpoint, next);
+        if (status != chip::Protocols::InteractionModel::Status::Success)
+        {
+            ChipLogError(AppServer, "Could not change meter profile from PB1");
+        }
+    }, 0);
+    if (err != CHIP_NO_ERROR)
+    {
+        ChipLogError(AppServer, "Could not queue meter profile change: %s", ErrorStr(err));
+    }
 }

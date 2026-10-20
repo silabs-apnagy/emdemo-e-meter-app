@@ -67,9 +67,7 @@ private:
         High = 765,
     };
 
-    static PricePreset NextPreset(PricePreset current);
     void ApplyPricePreset(PricePreset preset);
-    PricePreset AdvancePricePreset();
     void RequestDemoScreenRefresh();
 
     PricePreset mPricePreset = PricePreset::Low;

@@ -1,3 +1,8 @@
+# Electrical Meter Solution
+
+See [conference MVP status](CONFERENCE_MVP.md) for current house-load/price behavior
+and the remaining validation/pinning handoff.
+
 ## Clone
 
 ```bash
